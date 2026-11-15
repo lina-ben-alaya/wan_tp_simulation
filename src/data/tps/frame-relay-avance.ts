@@ -199,8 +199,7 @@ const tp: Tp = {
   ],
   sims: ['fr-failover'],
   ap: {
-    file: 'https://brahimfatnass.github.io/simulations/TP5-HS/HTML5/',
-    author: 'Brahim Fatnass',
+    file: 'sims/frame-relay-avance/index.html',
     scenes: ['Introduction', 'Construire la table du commutateur FR (glisser-déposer)', 'Encapsulations PPP et FR ANSI', 'Routes flottantes DA 50', 'VPCS et pings', 'Démo de panne : le trou noir', 'Questions 6 et 7', 'Sous-interfaces point-à-point', 'RIPv2', 'Même panne : bascule réussie + trace', 'Comparatif avant / après et score'],
   },
   sources: [{ label: 'Énoncé – Frame Relay avancé (hub and spoke)', file: 'docs/tp-frame-relay-avance.pdf' }],

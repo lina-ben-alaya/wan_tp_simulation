@@ -233,8 +233,7 @@ const tp: Tp = {
   ],
   sims: ['nat'],
   ap: {
-    file: 'https://brahimfatnass.github.io/simulations/natdem/',
-    author: 'Brahim Fatnass',
+    file: 'sims/nat-pat-dhcp/index.html',
     scenes: ['Introduction et zones de la topologie', 'Routes statiques R1 / R2 / R3', 'DHCP : exclusions et pools', 'Relais DHCP et animation DORA', 'show ip dhcp binding', 'NAT statique du serveur web', 'NAT statique des serveurs du FAI + route', 'NAT dynamique : pool et ACL', 'Question : plus de 6 hôtes ?', 'Surcharge (PAT) et vérification', 'PAT sur Router4', 'Score et bilan'],
   },
   sources: [{ label: 'Énoncé – Configuration du DHCP et NAT', file: 'docs/tp-nat-pat-dhcp.pdf' }],

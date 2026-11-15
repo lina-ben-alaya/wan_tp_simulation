@@ -254,8 +254,7 @@ const tp: Tp = {
   ],
   sims: [],
   ap: {
-    file: 'https://brahimfatnass.github.io/simulations/tp1/HTML5/',
-    author: 'Brahim Fatnass',
+    file: 'sims/mpls-backbone-p1/index.html',
     scenes: ['Introduction et objectifs', 'Topologie annotée (rôles CE/PE/P)', 'Adressage SP1 – console', 'Ping point à point', 'OSPF sur SP1/SP2/SP3', 'Loopback /32 → /25 (avant/après)', 'EIGRP AS 100 sur les CE', 'Question : pourquoi aucun voisin EIGRP ?', 'Score et bilan'],
   },
   sources: [{ label: 'Énoncé TP1 – Partie I', file: 'docs/tp1-mpls-partie1.pdf' }],

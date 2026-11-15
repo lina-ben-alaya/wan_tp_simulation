@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { isTrustedOrigin, parseApMessage } from '../../lib/ap-bridge';
 import { recordAp } from '../../lib/progress';
 import Icon from '../ui/Icon';
+import { AUTHOR } from '../../data/catalog';
 
 type Status = 'checking' | 'available' | 'missing';
 
@@ -46,13 +47,14 @@ export default function APPlayer({ slug, title, src, scenes, scoreSlug, author }
   if (status === 'missing') {
     return (
       <div className="stack">
-        <div className="callout callout-warn">
-          <Icon name="info" />
+        <div className="callout callout-info">
+          <Icon name="clock" />
           <div>
-            <strong>Simulation ActivePresenter à produire.</strong> Aucun export n’est encore déposé dans <code>public/{src.split('/').slice(-3).join('/')}</code>.
-            Le storyboard ci-dessous est prêt ; en attendant, les modes Observer et Pratiquer de la plateforme couvrent les mêmes manipulations.
+            <strong>Simulation ActivePresenter de {AUTHOR} — en cours de réalisation.</strong>{' '}
+            Elle sera ajoutée prochainement. En attendant, les modes Observer et Pratiquer couvrent les mêmes manipulations.
           </div>
         </div>
+        <div className="dim" style={{ fontSize: '0.84rem' }}>Scénario prévu :</div>
         <ol style={{ margin: 0, paddingLeft: 20, display: 'grid', gap: 4 }}>
           {scenes.map((s) => <li key={s} className="muted">{s}</li>)}
         </ol>

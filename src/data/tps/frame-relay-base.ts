@@ -158,8 +158,7 @@ const tp: Tp = {
   ],
   sims: ['inverse-arp'],
   ap: {
-    file: 'https://brahimfatnass.github.io/simulations/TP5-FR/HTML5/',
-    author: 'Brahim Fatnass',
+    file: 'sims/frame-relay-base/index.html',
     scenes: ['Introduction et topologie', 'Encapsulation + no shutdown', 'show frame-relay pvc annoté', 'show interfaces serial1/0 (LMI)', 'Wireshark : LMI DTE ↔ DCE', 'Adressage /29 et show frame-relay map', 'Wireshark : Inverse ARP requête / réponse', 'Question : à quoi sert le mappage ?', 'Mappage statique et broadcast', 'Score et bilan'],
   },
   sources: [{ label: 'Énoncé – Configuration de base Frame Relay', file: 'docs/tp-frame-relay-base.pdf' }],

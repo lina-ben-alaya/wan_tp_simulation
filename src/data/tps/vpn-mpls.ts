@@ -316,8 +316,7 @@ const tp: Tp = {
   ],
   sims: ['route-target', 'packet-mpls'],
   ap: {
-    file: 'https://brahimfatnass.github.io/simulations/tp2/HTML5/',
-    author: 'Brahim Fatnass',
+    file: 'sims/vpn-mpls/index.html',
     scenes: ['Introduction et objectifs', 'Ch.1 – VRF, RD et RT (question RT 100:100)', 'ip vrf forwarding : l’adresse disparaît', 'ping global ✗ / ping vrf ✓', 'Ch.2 – EIGRP par address-family', 'Table globale vs table VRF (3 questions)', 'Ch.3 – MP-BGP VPNv4', 'Redistribution et routes B', 'Wireshark : en-tête MPLS', 'Traceroute : pile de labels', 'Quiz final et score'],
   },
   sources: [{ label: 'Énoncé TP2 – VPN MPLS', file: 'docs/tp2-vpn-mpls.pdf' }],
