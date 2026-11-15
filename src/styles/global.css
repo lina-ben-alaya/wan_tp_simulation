@@ -124,7 +124,7 @@ img, svg { max-width: 100%; }
 .nav a[aria-current="page"] { color: var(--text); background: var(--surface-2); font-weight: 600; }
 .header-actions { margin-left: auto; display: flex; gap: 6px; align-items: center; }
 .menu-btn { display: inline-flex; }
-@media (min-width: 1080px) { .nav { display: flex; } .menu-btn { display: none; } }
+@media (min-width: 640px) { .nav { display: flex; } .header-actions .menu-btn { display: none; } }
 .mobile-nav { display: none; border-top: 1px solid var(--border); padding: 8px 0 14px; }
 .mobile-nav.open { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
 .mobile-nav a { padding: 10px 12px; border-radius: 8px; color: var(--text); text-decoration: none; }

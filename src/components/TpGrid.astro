@@ -1,0 +1,31 @@
+---
+import Icon from './ui/Icon.astro';
+import { TPS } from '../data/index';
+import { THEMES } from '../data/catalog';
+import { apAvailable } from '../lib/ap-status';
+import { url } from '../lib/url';
+---
+<div class="grid-auto">
+  {TPS.map((t) => {
+    const ok = apAvailable(t);
+    return (
+      <a href={url(`tps/${t.slug}`)} class={`card card-link theme-${t.theme}`} aria-label={`${t.title} – ${ok ? 'simulation disponible' : 'simulation à venir'}`}>
+        <div class="tp-card">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge badge-theme">{THEMES[t.theme].label}</span>
+            {ok ? <span class="badge badge-ok"><Icon name="play" size={12} /> Disponible</span> : <span class="badge">À venir</span>}
+          </div>
+          <div>
+            <div class="mono dim" style="font-size:0.78rem">{t.code}</div>
+            <h3>{t.title}</h3>
+            <p class="muted" style="margin:4px 0 0;font-size:0.92rem">{t.subtitle}</p>
+          </div>
+          <div class="meta">
+            <span><Icon name="router" size={14} /> {t.tools[0]}</span>
+            <span><Icon name="layers" size={14} /> {t.ap.scenes.length} scènes</span>
+          </div>
+        </div>
+      </a>
+    );
+  })}
+</div>

@@ -1,21 +1,15 @@
 ---
 import '../styles/global.css';
 import Icon from '../components/ui/Icon.astro';
-import SearchPalette from '../components/search/SearchPalette.tsx';
 import { url } from '../lib/url';
 import { AUTHOR } from '../data/catalog';
 
 interface Props { title: string; description?: string }
-const { title, description = 'IT LAB – plateforme pédagogique interactive : TP réseaux (MPLS, BGP, NAT, VPN, Frame Relay) en 5 modes.' } = Astro.props;
+const { title, description = 'IT LAB – simulations ActivePresenter des TP réseaux (MPLS, BGP, NAT, VPN, Frame Relay).' } = Astro.props;
 
 const nav = [
   { href: '', label: 'Accueil' },
-  { href: 'modules', label: 'Modules' },
-  { href: 'tps', label: 'Bibliothèque' },
-  { href: 'simulations', label: 'Simulations' },
-  { href: 'defi', label: 'Défi' },
-  { href: 'dashboard', label: 'Dashboard' },
-  { href: 'ressources', label: 'Ressources' },
+  { href: 'tps', label: 'Simulations' },
   { href: 'a-propos', label: 'À propos' },
 ];
 const path = Astro.url.pathname.replace(import.meta.env.BASE_URL.replace(/\/$/, ''), '').replace(/^\/|\/$/g, '');
@@ -55,9 +49,6 @@ const isCurrent = (href: string) => (href === '' ? path === '' : path === href |
             {nav.map((n) => <a href={url(n.href)} aria-current={isCurrent(n.href) ? 'page' : undefined}>{n.label}</a>)}
           </nav>
           <div class="header-actions">
-            <button class="btn btn-ghost btn-sm search-trigger" type="button" data-open-search aria-label="Rechercher (Ctrl+K)">
-              <Icon name="search" size={16} /><span class="label">Rechercher</span><kbd>Ctrl K</kbd>
-            </button>
             <button class="btn btn-quiet btn-icon" type="button" id="theme-toggle" aria-label="Basculer le thème clair / sombre">
               <Icon name="moon" size={18} class="icon-moon" /><Icon name="sun" size={18} class="icon-sun" />
             </button>
@@ -84,13 +75,11 @@ const isCurrent = (href: string) => (href === '' ? path === '' : path === href |
           Conception et réalisation : <strong style="color:var(--text)">{AUTHOR}</strong>
         </div>
         <div style="max-width:520px">
-          Les simulations « GUIDÉ », « DÉMO » et « CALCULÉ » n’exécutent aucune commande réseau réelle.
-          <a href={url('a-propos#transparence')}>En savoir plus</a>.
+          Simulations réalisées avec ActivePresenter : aucune commande n’est exécutée sur un équipement réel.
         </div>
       </div>
     </footer>
 
-    <SearchPalette client:idle indexUrl={url('search.json')} base={url()} />
 
     <script>
       const root = document.documentElement;

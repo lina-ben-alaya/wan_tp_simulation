@@ -209,7 +209,7 @@ const tp: Tp = {
   ],
   sims: ['admin-distance'],
   ap: {
-    file: 'sims/redistribution/index.html',
+    file: 'sims/redistribution/tutorial.html',
     scenes: ['Introduction', 'Carte des trois domaines', 'Configuration de base (accélérée)', 'OSPF → EIGRP et routes D EX', 'EIGRP → OSPF : subnets et metric-type', 'RIP ↔ EIGRP et table de R6', 'Problème : table de R3', 'distance eigrp 90 105', 'Quiz et score'],
   },
   sources: [{ label: 'Énoncé – Redistribution OSPF/RIPv2/EIGRP', file: 'docs/tp-redistribution.pdf' }],
