@@ -1,24 +1,68 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/ui/Icon.astro';
-import { AUTHOR } from '../data/catalog';
+import { ACTIVITY_KINDS, FIDELITY, AUTHOR } from '../data/catalog';
 import { url } from '../lib/url';
+
+const rows: [string, string, string, string][] = [
+  ['Carte / topologie interactive', 'Navigation entre labs', 'Image cliquable', 'Topologie vivante dans chaque TP (survol, clavier, équipement actif)'],
+  ['Simulation CLI guidée', '—', 'Oui (ActivePresenter)', 'Oui : terminal natif + intégration ActivePresenter'],
+  ['Théorie structurée', 'Non', 'Non', 'Mode Apprendre (notions, schémas, glossaire)'],
+  ['Démonstration commentée', 'Non', 'Mode Démo', 'Mode Observer (chronologie, vitesse, explications)'],
+  ['Quiz conceptuels et correction', 'Non', 'Non', 'Modes Évaluer et Corriger, bilan personnalisé'],
+  ['Visualisation des en-têtes', 'Non', 'Wireshark statique', 'Voyage d’un paquet (MPLS, GRE, IPsec)'],
+  ['Configuration correcte / incorrecte', 'Non', 'Non', 'Comparateurs dans chaque TP'],
+  ['Dépannage', 'Non', 'Non', 'Mode Défi chronométré'],
+  ['Progression', 'Case à cocher', 'Score local', 'Calculée + Dashboard + points faibles'],
+  ['Recherche / glossaire', 'Non', 'Non', 'Recherche globale (Ctrl K) + glossaire'],
+  ['Clair / sombre', 'Sombre', 'Clair', 'Les deux'],
+];
 ---
-<BaseLayout title="À propos" description="Le projet IT LAB : simulations ActivePresenter des TP réseaux.">
+<BaseLayout title="À propos" description="Le projet IT LAB, sa méthode et ses limites.">
   <section class="container page-head">
     <div class="eyebrow">À propos</div>
     <h1>Le projet IT LAB</h1>
-    <p class="lead">Une plateforme qui rassemble les simulations ActivePresenter des travaux pratiques de réseaux informatiques (RSI3).</p>
+    <p class="lead">Une plateforme qui transforme des comptes rendus de TP en expériences pédagogiques : comprendre, observer, pratiquer, s’évaluer et corriger.</p>
   </section>
+
   <section class="container section-sm prose" style="max-width:900px">
     <div class="card card-pad" style="display:flex;gap:14px;align-items:center">
       <span style="color:var(--primary)"><Icon name="user" size={28} /></span>
       <div><div class="eyebrow" style="margin-bottom:2px">Conception et réalisation</div><strong style="font-size:1.2rem;color:var(--text)">{AUTHOR}</strong></div>
     </div>
-    <h2>Contenu</h2>
-    <p>Backbone MPLS, VPN MPLS, BGP, redistribution OSPF/EIGRP/RIPv2, NAT/PAT/DHCP, VPN IPsec, tunnel GRE over IPsec et Frame Relay.</p>
-    <h2>Les simulations</h2>
-    <p>Chaque simulation est réalisée avec ActivePresenter puis exportée en HTML5 : elle s’ouvre directement dans le navigateur, sans installation. Les commandes saisies sont comparées aux réponses attendues ; aucun équipement réseau réel n’est exécuté.</p>
-    <p><a class="btn btn-primary" href={url('tps')}>Voir les simulations <Icon name="arrowRight" /></a></p>
+    <h2>Méthode</h2>
+    <ul>
+      <li>Chaque TP a été analysé à partir de son énoncé : objectifs, notions, commandes, résultats attendus, questions.</li>
+      <li>Le contenu technique se limite à ce que justifient les documents et la théorie qu’ils mobilisent. Les incohérences relevées dans les énoncés sont signalées dans chaque TP (« Notes sur l’énoncé »).</li>
+      <li>Les questions sont marquées « Question du TP » (posées dans l’énoncé) ou « Question de notion » (ajoutées à partir des notions du TP).</li>
+    </ul>
+
+    <h2 id="transparence" class="anchor-offset">Transparence : ce qui est simulé</h2>
+    <p>Aucune page de la plateforme n’exécute de commande sur un routeur. Chaque activité porte un badge :</p>
+    <div class="card table-wrap"><table class="table"><tbody>
+      {Object.values(ACTIVITY_KINDS).map((k) => <tr><th style="width:120px"><span class="badge badge-kind">{k.label}</span></th><td>{k.description}</td></tr>)}
+    </tbody></table></div>
+    <p style="margin-top:16px">Chaque sortie console indique aussi sa provenance :</p>
+    <div class="card table-wrap"><table class="table"><tbody>
+      {Object.values(FIDELITY).map((f) => <tr><th style="width:180px">{f.label}</th><td>{f.description}</td></tr>)}
+    </tbody></table></div>
+
+    <h2>Valeur ajoutée par rapport aux références</h2>
+    <div class="card table-wrap"><table class="table">
+      <thead><tr><th>Critère</th><th>Référence 1 (Network Labs)</th><th>Référence 2 (WAN TP Simulations)</th><th>IT LAB</th></tr></thead>
+      <tbody>{rows.map((r) => <tr><td><strong>{r[0]}</strong></td><td>{r[1]}</td><td>{r[2]}</td><td>{r[3]}</td></tr>)}</tbody>
+    </table></div>
+
+    <h2>Architecture</h2>
+    <p>Site statique Astro 5 + îlots React 18, TypeScript strict, Tailwind CSS 4 et design tokens clair/sombre. Contenu des TP en modules TypeScript validés par schéma (Zod) dans les tests. Progression stockée dans le navigateur (aucun compte, aucun serveur). Index de recherche généré au build. Simulations ActivePresenter intégrées en iframe avec remontée du score par <code>postMessage</code>.</p>
+    <p>Documentation technique : dossier <code>docs/</code> du projet.</p>
+
+    <h2>Limites connues</h2>
+    <ul>
+      <li>Les comptes rendus (captures réelles) ne sont pas encore intégrés : les sorties sont reconstituées.</li>
+      <li>Simulation ActivePresenter disponible : TP Redistribution. Les autres exports sont en cours de réalisation à partir des storyboards ; la plateforme les détecte automatiquement.</li>
+      <li>La progression est locale au navigateur : utilisez l’export du Dashboard pour la conserver.</li>
+    </ul>
+    <p><a class="btn btn-primary" href={url('tps')}>Commencer <Icon name="arrowRight" /></a></p>
   </section>
 </BaseLayout>
