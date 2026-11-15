@@ -235,7 +235,8 @@ const tp: Tp = {
   ],
   sims: ['label-table'],
   ap: {
-    file: 'sims/mpls-backbone-p2/index.html',
+    file: 'https://brahimfatnass.github.io/simulations/tp1_2/HTML5/',
+    author: 'Brahim Fatnass',
     scenes: ['Introduction et objectifs', 'Rappel push / swap / pop', 'mpls ldp router-id sur les 3 routeurs', 'mpls ip par interface + message LDP', 'show mpls ldp neighbor annoté', 'LIB vs LFIB sur SP3 (zones cliquables)', 'Exercice : labels de 1.1.1.0/25', 'Quiz et score'],
   },
   sources: [{ label: 'Énoncé TP1 – Partie II', file: 'docs/tp1-mpls-partie2.pdf' }],

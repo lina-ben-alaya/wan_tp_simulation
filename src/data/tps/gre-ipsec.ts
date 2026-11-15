@@ -193,7 +193,8 @@ const tp: Tp = {
   ],
   sims: ['packet-gre-ipsec'],
   ap: {
-    file: 'sims/gre-ipsec/index.html',
+    file: 'https://brahimfatnass.github.io/simulations/tp4-gre/',
+    author: 'Brahim Fatnass',
     scenes: ['Introduction', 'Adressage, NAT overload et ACL 100', 'Tunnel0 et MTU 1400 (animation)', 'ping 172.16.1.2 ✓ / 10.0.20.1 ✗', 'Routes via le tunnel', 'Wireshark IP/GRE/IP : reconstituer l’encapsulation', 'Pourquoi GRE + IPsec', 'ISAKMP, transform-set, ACL 101, crypto map', 'Wireshark : ESP seul', 'show crypto ? – exploration', 'Score et bilan'],
   },
   sources: [{ label: 'Énoncé – Tunnel GRE over IPsec', file: 'docs/tp-gre-ipsec.pdf' }],

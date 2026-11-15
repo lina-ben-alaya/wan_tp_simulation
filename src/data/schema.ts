@@ -74,7 +74,11 @@ export const tpSchema = z.object({
   quiz: z.array(questionSchema).min(5),
   compare: z.array(compareSchema).min(1),
   sims: z.array(z.string()),
-  ap: z.object({ file: z.string().startsWith('sims/'), scenes: z.array(z.string()).min(5) }),
+  ap: z.object({
+    file: z.string().refine((f) => f.startsWith('sims/') || f.startsWith('https://'), 'chemin sims/… ou adresse https'),
+    scenes: z.array(z.string()).min(5),
+    author: z.string().optional(),
+  }),
   sources: z.array(z.object({ label: z.string(), file: z.string() })).min(1),
   notes: z.array(z.string()),
   glossary: z.array(z.string()),

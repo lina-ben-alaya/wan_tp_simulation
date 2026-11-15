@@ -64,7 +64,7 @@ const next = TPS[idx + 1];
           <h2 style="margin:0;font-size:1.3rem">Simulation ActivePresenter</h2>
         </div>
         <p class="muted">Simulation HTML5 conçue sous ActivePresenter selon le storyboard du TP : saisie guidée, Wireshark reconstitué, questions et score.</p>
-        <APPlayer client:load slug={tp.slug} title={`${tp.code} – ${tp.title}`} src={url(tp.ap.file)} scenes={tp.ap.scenes} />
+        <APPlayer client:load slug={tp.slug} title={`${tp.code} – ${tp.title}`} src={url(tp.ap.file)} scenes={tp.ap.scenes} author={tp.ap.author} />
       </section>
 
       <nav style="display:flex;justify-content:space-between;gap:12px;margin-top:24px;flex-wrap:wrap" aria-label="TP précédent et suivant">

@@ -183,7 +183,8 @@ const tp: Tp = {
   ],
   sims: [],
   ap: {
-    file: 'sims/bgp/index.html',
+    file: 'https://brahimfatnass.github.io/simulations/bgp/HTML5/',
+    author: 'Brahim Fatnass',
     scenes: ['Introduction et objectifs', 'Topologie AS 100 / AS 200', 'Loopbacks ISP1 et ISP2', 'Route par défaut CR + route statique ISP1', 'router bgp 100 / 200', 'show ip route ISP2 : 5 questions', 'show ip route ISP1 et CR : questions', 'show ip bgp : survol des colonnes', 'Question finale et score'],
   },
   sources: [{ label: 'Énoncé – Configuration d’un routeur avec BGP (Cisco Networking Academy)', file: 'docs/tp-bgp.pdf' }],

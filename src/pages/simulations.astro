@@ -32,7 +32,7 @@ const simOwners = (id: SimId) => TPS.filter((t) => t.sims.includes(id));
             <span class="badge badge-theme">{t.code}</span><strong>{t.title}</strong><span class="dim" style="margin-left:auto;font-size:0.84rem">{t.ap.scenes.length} scènes</span>
           </summary>
           <div style="padding:0 20px 20px">
-            <APPlayer client:visible slug={t.slug} title={`${t.code} – ${t.title}`} src={url(t.ap.file)} scenes={t.ap.scenes} />
+            <APPlayer client:load slug={t.slug} title={`${t.code} – ${t.title}`} src={url(t.ap.file)} scenes={t.ap.scenes} author={t.ap.author} />
           </div>
         </details>
       ))}
@@ -42,7 +42,7 @@ const simOwners = (id: SimId) => TPS.filter((t) => t.sims.includes(id));
         </summary>
         <div style="padding:0 20px 20px">
           <p class="muted">Ce gabarit reproduit uniquement l’envoi du score qu’un export ActivePresenter doit faire sur sa dernière diapositive. Il sert à vérifier le pont avant de déposer les vrais exports.</p>
-          <APPlayer client:visible slug="demo" title="Gabarit de test du pont" src={url('sims/_demo/index.html?tp=demo')} scenes={['Diapositive 1', 'Question', 'Feedback', 'Résultat', 'Envoi du score']} />
+          <APPlayer client:load slug="demo" title="Gabarit de test du pont" src={url('sims/_demo/index.html?tp=demo')} scenes={['Diapositive 1', 'Question', 'Feedback', 'Résultat', 'Envoi du score']} />
         </div>
       </details>
     </div>

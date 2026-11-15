@@ -165,7 +165,8 @@ const tp: Tp = {
   ],
   sims: ['packet-ipsec'],
   ap: {
-    file: 'sims/vpn-ipsec/index.html',
+    file: 'https://brahimfatnass.github.io/simulations/tp4-vpn/',
+    author: 'Brahim Fatnass',
     scenes: ['Introduction et topologie', 'Adressage, routage, ping initial', 'Tableau phase 1 à compléter (glisser-déposer)', 'Saisie phase 1 sur R1', 'Tableau phase 2', 'Transform-set, crypto map, ACL, application', 'R3 en mode accéléré', 'show crypto ipsec sa avant trafic', 'Ping et Wireshark : ISAKMP puis ESP', 'show crypto ipsec sa après', 'Quiz et score'],
   },
   sources: [{ label: 'Énoncé – TP VPN IPsec sous GNS3', file: 'docs/tp-vpn-ipsec.pdf' }],

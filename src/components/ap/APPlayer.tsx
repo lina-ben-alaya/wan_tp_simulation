@@ -11,7 +11,7 @@ type Status = 'checking' | 'available' | 'missing';
  * - Charge l'export en iframe à la demande, plein écran possible.
  * - Reçoit le score via postMessage (voir src/lib/ap-bridge.ts).
  */
-export default function APPlayer({ slug, title, src, scenes, scoreSlug }: { slug: string; title: string; src: string; scenes: string[]; scoreSlug?: string }) {
+export default function APPlayer({ slug, title, src, scenes, scoreSlug, author }: { slug: string; title: string; src: string; scenes: string[]; scoreSlug?: string; author?: string }) {
   const [status, setStatus] = useState<Status>('checking');
   const [launched, setLaunched] = useState(false);
   const [result, setResult] = useState<{ score: number; max: number } | null>(null);
@@ -67,7 +67,7 @@ export default function APPlayer({ slug, title, src, scenes, scoreSlug }: { slug
           <Icon name="play" size={28} />
           <div style={{ flex: 1, minWidth: 200 }}>
             <strong>{title}</strong>
-            <div className="dim" style={{ fontSize: '0.86rem' }}>Export HTML5 ActivePresenter · {scenes.length} scènes</div>
+            <div className="dim" style={{ fontSize: '0.86rem' }}>Export HTML5 ActivePresenter{author ? ` · réalisée par ${author}` : ''}</div>
           </div>
           <button className="btn btn-primary" onClick={() => setLaunched(true)}>Lancer la simulation</button>
         </div>
@@ -83,6 +83,11 @@ export default function APPlayer({ slug, title, src, scenes, scoreSlug }: { slug
         {launched && !result && <button className="btn btn-quiet btn-sm" onClick={() => { recordAp(slug, 1, 1); setResult({ score: 1, max: 1 }); }}>Marquer comme terminée</button>}
         {result && <span className="badge badge-ok" aria-live="polite">Score reçu : {result.score} / {result.max}</span>}
       </div>
+      {author && (
+        <p className="dim" style={{ fontSize: '0.84rem', margin: 0 }}>
+          Simulation réalisée par <strong>{author}</strong> — <a href={src} target="_blank" rel="noopener">source</a>.
+        </p>
+      )}
     </div>
   );
 }

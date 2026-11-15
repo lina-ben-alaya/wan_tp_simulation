@@ -165,7 +165,11 @@ export interface Tp {
   quiz: Question[];
   compare: CompareCase[];
   sims: SimId[];
-  ap: { file: string; scenes: string[] };
+  /**
+   * Simulation ActivePresenter : chemin local (« sims/… », dans public/) ou adresse https
+   * d'un export publié ailleurs. `author` est affiché quand la simulation n'est pas de l'auteur du site.
+   */
+  ap: { file: string; scenes: string[]; author?: string };
   sources: { label: string; file: string }[];
   /** Anomalies relevées dans l'énoncé et leur traitement. */
   notes: string[];
