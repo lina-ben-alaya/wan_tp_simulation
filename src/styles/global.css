@@ -287,3 +287,30 @@ pre.code { background: var(--console-bg); color: var(--console-text); border-rad
 .prose ul { padding-left: 1.2em; }
 .prose h2 { margin-top: 1.6em; }
 .anchor-offset { scroll-margin-top: 80px; }
+
+/* ---------- Simulation IT LAB (diaporama interactif) ---------- */
+.sim-stage { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-lg); overflow: hidden; display: flex; flex-direction: column; min-height: min(78vh, 760px); outline: none; }
+.sim-stage:fullscreen { border-radius: 0; min-height: 100vh; }
+.sim-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+.sim-bar .brand-mark { flex: none; }
+.sim-bar-title { font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.sim-main { flex: 1; display: flex; min-height: 0; }
+.sim-toc { width: 260px; flex: none; border-right: 1px solid var(--border); overflow-y: auto; max-height: 640px; padding: 6px; background: var(--surface); }
+.sim-toc button { display: flex; gap: 8px; width: 100%; text-align: left; border: 0; background: transparent; color: var(--text-2); font: inherit; font-size: 0.8rem; padding: 6px 8px; border-radius: 7px; cursor: pointer; }
+.sim-toc button:hover { background: var(--surface-2); }
+.sim-toc button[aria-current="step"] { background: var(--primary-soft); color: var(--text); font-weight: 600; }
+.sim-slide { flex: 1; padding: clamp(16px, 3vw, 36px); overflow-y: auto; min-width: 0; }
+.sim-foot { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border); background: var(--surface-2); flex-wrap: wrap; }
+.sim-foot .btn-primary { margin-left: auto; }
+.sim-credit { font-size: 0.78rem; }
+.sim-center { text-align: center; padding: 4vh 0; }
+.sim-title { font-size: clamp(1.8rem, 3.6vw, 2.6rem); margin: 6px 0 10px; }
+.sim-h { font-size: 1.5rem; margin-bottom: 14px; }
+.sim-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; font-size: 1.05rem; }
+.sim-list li { display: flex; gap: 10px; align-items: flex-start; }
+.sim-list svg { color: var(--accent, var(--primary)); flex: none; margin-top: 4px; }
+.sim-callout { display: flex; gap: 10px; align-items: flex-start; background: #fff7d6; color: #3b2f05; border: 1px solid #f2d36b; border-radius: 10px; padding: 10px 14px; box-shadow: 0 6px 18px -10px rgba(120, 90, 0, 0.5); }
+.sim-callout svg { flex: none; margin-top: 3px; }
+.sim-split { display: grid; gap: 20px; align-items: center; }
+@media (min-width: 900px) { .sim-split { grid-template-columns: 1fr 1.2fr; } }
+@media (max-width: 700px) { .sim-toc { position: absolute; z-index: 10; height: 60vh; box-shadow: var(--shadow-lg); } .sim-main { position: relative; } .sim-credit { display: none; } }

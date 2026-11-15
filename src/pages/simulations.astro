@@ -4,8 +4,9 @@ import Icon from '../components/ui/Icon.astro';
 import APPlayer from '../components/ap/APPlayer.tsx';
 import SimHost from '../components/sims/SimHost.tsx';
 import { TPS } from '../data/index';
-import { ACTIVITY_KINDS, SIMS } from '../data/catalog';
+import { ACTIVITY_KINDS, SIMS, AUTHOR } from '../data/catalog';
 import { url } from '../lib/url';
+import { hasApExport } from '../lib/ap-status';
 import type { SimId } from '../data/types';
 
 const simOwners = (id: SimId) => TPS.filter((t) => t.sims.includes(id));
@@ -23,19 +24,27 @@ const simOwners = (id: SimId) => TPS.filter((t) => t.sims.includes(id));
   </section>
 
   <section class="container section-sm" id="activepresenter">
-    <h2><Icon name="play" /> Simulations ActivePresenter (HTML5)</h2>
-    <p class="muted">Un export par TP, déposé dans <code>public/sims/&lt;slug&gt;/</code>. Tant qu’un export n’est pas déposé, son storyboard est affiché. Ouvrez une ligne pour la lancer.</p>
-    <div class="stack">
-      {TPS.map((t) => (
-        <details class={`card theme-${t.theme}`}>
-          <summary class="card-pad" style="cursor:pointer;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            <span class="badge badge-theme">{t.code}</span><strong>{t.title}</strong><span class="dim" style="margin-left:auto;font-size:0.84rem">{t.ap.scenes.length} scènes</span>
-          </summary>
-          <div style="padding:0 20px 20px">
-            <APPlayer client:load slug={t.slug} title={`${t.code} – ${t.title}`} src={url(t.ap.file)} scenes={t.ap.scenes} author={t.ap.author} />
-          </div>
-        </details>
-      ))}
+    <h2><Icon name="play" /> Simulations des TP</h2>
+    <p class="muted">Une simulation par TP, réalisée par {AUTHOR} : simulation ActivePresenter (HTML5) quand elle existe, sinon simulation interactive IT LAB (diaporama avec console, saisie des commandes, questions et score).</p>
+    <div class="grid-auto">
+      {TPS.map((t) => {
+        const ap = hasApExport(t);
+        return (
+          <a class={`card card-link theme-${t.theme}`} href={url(`tps/${t.slug}/simulation`)}>
+            <div class="tp-card">
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <span class="badge badge-theme">{t.code}</span>
+                <span class={`badge ${ap ? 'badge-primary' : 'badge-ok'}`}>{ap ? 'ActivePresenter' : 'Simulation IT LAB'}</span>
+              </div>
+              <h3>{t.title}</h3>
+              <p class="muted" style="margin:0;font-size:0.9rem">{t.subtitle}</p>
+              <div class="meta"><span><Icon name="play" size={14} /> Lancer la simulation</span></div>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+    <div class="stack" style="margin-top:16px">
       <details class="card">
         <summary class="card-pad" style="cursor:pointer;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <span class="badge badge-warn">TEST</span><strong>Vérifier l’intégration (gabarit de test, pas un export ActivePresenter)</strong>

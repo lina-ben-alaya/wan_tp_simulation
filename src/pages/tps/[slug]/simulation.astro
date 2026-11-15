@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Icon from '../../../components/ui/Icon.astro';
+import SlideSim from '../../../components/sim/SlideSim.tsx';
+import APPlayer from '../../../components/ap/APPlayer.tsx';
+import { TPS, getTp } from '../../../data/index';
+import { url } from '../../../lib/url';
+import { hasApExport } from '../../../lib/ap-status';
+
+export function getStaticPaths() {
+  return TPS.map((t) => ({ params: { slug: t.slug } }));
+}
+const tp = getTp(Astro.params.slug!)!;
+const ap = hasApExport(tp);
+---
+<BaseLayout title={`Simulation – ${tp.title}`} description={`Simulation interactive du TP ${tp.title}.`}>
+  <section class={`container theme-${tp.theme}`} style="padding-top:20px">
+    <nav class="dim" style="font-size:0.86rem;margin-bottom:12px" aria-label="Fil d’Ariane">
+      <a href={url('simulations')}>Simulations</a> / <a href={url(`tps/${tp.slug}`)}>{tp.title}</a> / <span>Simulation</span>
+    </nav>
+    {ap
+      ? <APPlayer client:load slug={tp.slug} title={`${tp.code} – ${tp.title}`} src={url(tp.ap.file)} scenes={tp.ap.scenes} author={tp.ap.author} />
+      : <SlideSim client:load tp={tp} />}
+    <p style="margin-top:14px"><a class="btn btn-ghost btn-sm" href={url(`tps/${tp.slug}`)}><Icon name="prev" /> Retour au TP</a></p>
+  </section>
+</BaseLayout>
