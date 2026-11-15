@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/ui/Icon.astro';
+import Topology from '../components/tp/Topology.tsx';
+import { TPS } from '../data/index';
+import { THEMES } from '../data/catalog';
+import { GLOSSARY } from '../data/glossary';
+import { url } from '../lib/url';
+
+const topoTps = TPS.filter((t, i) => TPS.findIndex((x) => x.topology === t.topology) === i);
+const letters = [...new Set(GLOSSARY.map((g) => g.term[0].toUpperCase()))].sort();
+const sorted = [...GLOSSARY].sort((a, b) => a.term.localeCompare(b.term, 'fr'));
+---
+<BaseLayout title="Ressources" description="Énoncés, schémas de topologie, glossaire et guides.">
+  <section class="container page-head">
+    <div class="eyebrow">Ressources</div>
+    <h1>Documents, schémas et glossaire</h1>
+    <p class="lead">Les énoncés d’origine, les topologies redessinées et le vocabulaire technique des TP.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn btn-ghost btn-sm" href="#documents">Documents</a>
+      <a class="btn btn-ghost btn-sm" href="#schemas">Schémas</a>
+      <a class="btn btn-ghost btn-sm" href="#glossaire">Glossaire</a>
+      <a class="btn btn-ghost btn-sm" href="#labos">Labos réels</a>
+    </div>
+  </section>
+
+  <section class="container section-sm anchor-offset" id="documents">
+    <h2><Icon name="file" /> Énoncés des TP</h2>
+    <div class="card table-wrap">
+      <table class="table">
+        <thead><tr><th>TP</th><th>Thème</th><th>Document</th><th>Notes sur l’énoncé</th></tr></thead>
+        <tbody>
+          {TPS.map((t) => (
+            <tr>
+              <td><a href={url(`tps/${t.slug}`)}>{t.title}</a><div class="dim mono" style="font-size:0.75rem">{t.code}</div></td>
+              <td><span class={`badge badge-theme theme-${t.theme}`}>{THEMES[t.theme].label}</span></td>
+              <td>{t.sources.map((s) => <a href={url(s.file)} target="_blank" rel="noopener" style="display:inline-flex;gap:6px;align-items:center"><Icon name="download" size={14} /> PDF</a>)}</td>
+              <td class="dim" style="font-size:0.84rem">{t.notes.length ? `${t.notes.length} remarque(s) – voir le mode Apprendre` : '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="dim" style="font-size:0.84rem;margin-top:8px">Les comptes rendus (captures réelles, sorties et réponses rédigées) pourront être ajoutés ici ; ils remplaceront alors les sorties « reconstituées ».</p>
+  </section>
+
+  <section class="container section-sm anchor-offset" id="schemas">
+    <h2><Icon name="network" /> Schémas de topologie</h2>
+    <div class="grid-auto" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr))">
+      {topoTps.map((t) => (
+        <div class="card card-pad">
+          <strong>{t.slug.startsWith('mpls') || t.slug === 'vpn-mpls' ? 'TP MPLS (TP1 parties I et II, TP2)' : t.title}</strong>
+          <Topology topology={t.topology} />
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="container section-sm anchor-offset" id="glossaire">
+    <h2><Icon name="book" /> Glossaire technique ({GLOSSARY.length} termes)</h2>
+    <nav aria-label="Index alphabétique" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px">
+      {letters.map((l) => <a class="chip" href={`#lettre-${l}`}>{l}</a>)}
+    </nav>
+    <div class="card card-pad">
+      <dl style="margin:0;display:grid;gap:14px">
+        {sorted.map((g, i) => (
+          <div id={`glossaire-${g.id}`} class="anchor-offset">
+            {(i === 0 || sorted[i - 1].term[0].toUpperCase() !== g.term[0].toUpperCase()) && <div id={`lettre-${g.term[0].toUpperCase()}`} class="anchor-offset eyebrow" style="margin-top:6px">{g.term[0].toUpperCase()}</div>}
+            <dt style="font-weight:650">{g.term}{g.full && <span class="dim" style="font-weight:400"> — {g.full}</span>}</dt>
+            <dd class="muted" style="margin:2px 0 0">{g.definition}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section class="container section-sm anchor-offset" id="labos">
+    <h2><Icon name="router" /> Labos réels (GNS3 / Packet Tracer)</h2>
+    <div class="card card-pad">
+      <p class="muted">Seuls ces labos exécutent de vraies commandes. Outils utilisés dans les TP : GNS3 avec routeurs Cisco 7200 (et IOS supportant « crypto » pour les TP IPsec), Wireshark, VPCS, Cisco Packet Tracer (TP NAT/DHCP).</p>
+      <p class="muted" style="margin:0">Déposez les fichiers de projet (<code>.gns3project</code>, <code>.pkt</code>) dans <code>public/labs/</code> pour les proposer au téléchargement ici. Aucun fichier de labo n’est fourni pour l’instant.</p>
+    </div>
+  </section>
+</BaseLayout>

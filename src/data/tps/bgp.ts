@@ -1,0 +1,199 @@
+import type { Tp } from '../types';
+
+const tp: Tp = {
+  slug: 'bgp',
+  order: 4,
+  code: 'TP BGP',
+  title: 'Configuration de BGP',
+  subtitle: 'Route par défaut côté client, eBGP entre deux FAI',
+  subject: 'routage',
+  theme: 'routage',
+  level: 1,
+  duration: 45,
+  tools: ['Routeurs Cisco 1841 (ou GNS3)', 'Émulateur de terminal'],
+  equipment: ['CR', 'ISP1', 'ISP2', 'PC hôte', 'Commutateur'],
+  fidelity: 'enonce',
+  summary:
+    "Relier une petite société à Internet : le routeur client utilise une route par défaut vers son FAI (ISP1, AS 100), qui échange ses routes avec ISP2 (AS 200) par BGP4.",
+  scenario:
+    "Une petite société a besoin d’un accès à Internet et le demande à son FAI local (ISP1). ISP1 se connecte à l’Internet via ISP2 à l’aide de BGP4, le protocole de routage le plus courant entre FAI.",
+  objectives: [
+    'Configurer le routeur client avec une route par défaut vers ISP1',
+    'Configurer sur ISP1 une route statique de retour vers le réseau client',
+    'Configurer eBGP entre ISP1 (AS 100) et ISP2 (AS 200)',
+    'Lire show ip route et show ip bgp',
+  ],
+  prerequisites: [],
+  topology: {
+    width: 800,
+    height: 440,
+    caption: 'Topologie du TP BGP (Cisco Networking Academy)',
+    zones: [
+      { label: 'AS 100', x: 20, y: 20, w: 420, h: 400, tone: 'routage' },
+      { label: 'AS 200', x: 480, y: 60, w: 300, h: 200, tone: 'mpls' },
+    ],
+    nodes: [
+      { id: 'ISP1', kind: 'router', x: 300, y: 120, role: 'FAI', info: ['s0/0/0 : 10.10.10.2/24', 's0/0/1 : 172.16.1.1/24', 'Loopback0 : 192.168.100.1/24'] },
+      { id: 'ISP2', kind: 'router', x: 620, y: 160, role: 'FAI', info: ['s0/0/0 : 172.16.1.2/24', 'Loopback0 : 192.168.200.1/24'] },
+      { id: 'CR', kind: 'router', x: 300, y: 280, role: 'Client', info: ['s0/0/0 : 10.10.10.1/24', 'Fa0/0 : 192.168.1.1/24'] },
+      { id: 'SW', label: 'Switch', kind: 'switch', x: 300, y: 360 },
+      { id: 'PC', label: 'Hôte', kind: 'pc', x: 120, y: 360, info: ['192.168.1.0/24', 'Passerelle : 192.168.1.1'] },
+    ],
+    links: [
+      { a: 'CR', b: 'ISP1', label: '10.10.10.0/24', kind: 'serial' },
+      { a: 'ISP1', b: 'ISP2', label: '172.16.1.0/24 (eBGP)', kind: 'serial' },
+      { a: 'CR', b: 'SW', label: 'Fa0/0', kind: 'ethernet' },
+      { a: 'SW', b: 'PC', kind: 'ethernet' },
+    ],
+  },
+  learn: [
+    {
+      title: 'BGP, le protocole entre opérateurs',
+      body: [
+        'BGP (Border Gateway Protocol, version 4) est un protocole de routage externe : il échange des routes entre systèmes autonomes (AS). Ici ISP1 est l’AS 100 et ISP2 l’AS 200 ; la session entre eux est donc de l’eBGP (external BGP).',
+        'Un voisin BGP se déclare explicitement : neighbor <adresse> remote-as <AS du voisin>. La commande network annonce un réseau qui doit déjà exister dans la table de routage.',
+      ],
+      code: 'router bgp 100\n neighbor 172.16.1.2 remote-as 200\n network 192.168.1.0\n network 192.168.100.0',
+    },
+    {
+      title: 'Le client n’a pas besoin de BGP',
+      body: [
+        "Le routeur client CR n'a qu'une sortie : une route par défaut vers ISP1 suffit. En retour, ISP1 connaît le réseau du client par une route statique, qu'il annonce ensuite en BGP.",
+        'Aucun protocole de routage ne tourne entre CR et ISP1 : CR ne reçoit donc aucune route de ses FAI, il utilise sa « Gateway of last resort ».',
+      ],
+      code: 'CR(config)# ip route 0.0.0.0 0.0.0.0 10.10.10.2\nISP1(config)# ip route 192.168.1.0 255.255.255.0 10.10.10.1',
+    },
+    {
+      title: 'Lire show ip bgp',
+      body: ['Chaque ligne décrit un réseau connu de BGP.'],
+      points: [
+        '* = route valide, > = meilleure route',
+        'Next Hop 0.0.0.0 = réseau annoncé localement',
+        'Weight 32768 = poids des routes d’origine locale',
+        'Path « 200 i » = AS traversés, puis origine (i = IGP, annoncée par network)',
+      ],
+      callout: { tone: 'info', text: 'Pensez à sauvegarder fréquemment : copy running-config startup-config.' },
+    },
+  ],
+  steps: [
+    {
+      id: 'lo-isp1', device: 'ISP1', title: 'Loopback d’ISP1', goal: 'Simuler un réseau réel 192.168.100.0/24.',
+      commands: [
+        { prompt: 'ISP1>', cmd: 'enable' },
+        { prompt: 'ISP1#', cmd: 'configure terminal' },
+        { prompt: 'ISP1(config)#', cmd: 'interface loopback0' },
+        { prompt: 'ISP1(config-if)#', cmd: 'ip address 192.168.100.1 255.255.255.0' },
+      ],
+      explain: 'Une interface de bouclage est une interface virtuelle qui simule un réseau réel à des fins de tests. Même chose sur ISP2 avec 192.168.200.1/24.',
+      hint: 'interface loopback0 puis ip address …',
+    },
+    {
+      id: 'default-cr', device: 'CR', title: 'Route par défaut sur CR', goal: 'Envoyer tout trafic inconnu vers ISP1.',
+      commands: [{ prompt: 'CR(config)#', cmd: 'ip route 0.0.0.0 0.0.0.0 10.10.10.2' }],
+      explain: '0.0.0.0 0.0.0.0 correspond à toutes les destinations. Le prochain saut est l’interface d’ISP1 sur le lien.',
+      hint: 'ip route 0.0.0.0 0.0.0.0 <prochain saut>',
+    },
+    {
+      id: 'static-isp1', device: 'ISP1', title: 'Route de retour sur ISP1', goal: 'ISP1 doit savoir joindre 192.168.1.0/24.',
+      commands: [{ prompt: 'ISP1(config)#', cmd: 'ip route 192.168.1.0 255.255.255.0 10.10.10.1' }],
+      explain: "Sans cette route, les réponses ne reviennent pas vers le LAN client. Testez ensuite le ping de l'hôte vers 10.10.10.2.",
+      hint: 'ip route <réseau client> <masque> <adresse de CR>',
+    },
+    {
+      id: 'bgp-isp1', device: 'ISP1', title: 'BGP sur ISP1 (AS 100)', goal: 'Voisin ISP2 et annonce de deux réseaux.',
+      commands: [
+        { prompt: 'ISP1(config)#', cmd: 'router bgp 100' },
+        { prompt: 'ISP1(config-router)#', cmd: 'neighbor 172.16.1.2 remote-as 200' },
+        { prompt: 'ISP1(config-router)#', cmd: 'network 192.168.1.0' },
+        { prompt: 'ISP1(config-router)#', cmd: 'network 192.168.100.0' },
+        { prompt: 'ISP1(config-router)#', cmd: 'end' },
+        { prompt: 'ISP1#', cmd: 'copy running-config startup-config' },
+      ],
+      explain: "ISP1 annonce le réseau du client (présent dans sa table grâce à la route statique) et sa loopback.",
+      hint: 'router bgp 100, neighbor … remote-as 200, network …',
+    },
+    {
+      id: 'bgp-isp2', device: 'ISP2', title: 'BGP sur ISP2 (AS 200)', goal: 'Voisin ISP1 et annonce de 192.168.200.0.',
+      commands: [
+        { prompt: 'ISP2(config)#', cmd: 'router bgp 200' },
+        { prompt: 'ISP2(config-router)#', cmd: 'neighbor 172.16.1.1 remote-as 100' },
+        { prompt: 'ISP2(config-router)#', cmd: 'network 192.168.200.0' },
+        { prompt: 'ISP2(config-router)#', cmd: 'end' },
+        { prompt: 'ISP2#', cmd: 'copy running-config startup-config' },
+      ],
+      explain: 'Chaque côté déclare l’AS de l’autre : remote-as 100 ici, remote-as 200 sur ISP1.',
+      hint: 'router bgp 200 …',
+    },
+    {
+      id: 'route-isp2', device: 'ISP2', title: 'Table de routage d’ISP2', goal: 'Repérer les routes BGP.',
+      commands: [{ prompt: 'ISP2#', cmd: 'show ip route' }],
+      output: 'Gateway of last resort is not set\n\n     172.16.0.0/24 is subnetted, 1 subnets\nC       172.16.1.0 is directly connected, Serial0/0\nC    192.168.200.0/24 is directly connected, Loopback0\nB    192.168.1.0/24 [20/0] via 172.16.1.1, 00:40:38\nB    192.168.100.0/24 [20/0] via 172.16.1.1, 00:40:38',
+      outputFidelity: 'enonce',
+      explain: 'Les lignes B sont des routes apprises par BGP, annoncées par ISP1 (172.16.1.1). 20 = distance administrative de l’eBGP.',
+      hint: 'show ip route',
+    },
+    {
+      id: 'bgp-table', device: 'ISP1', title: 'Table BGP d’ISP1', goal: 'Interpréter show ip bgp.',
+      commands: [{ prompt: 'ISP1#', cmd: 'show ip bgp' }],
+      output: 'BGP table version is 4, local router ID is 192.168.100.1\nStatus codes: s suppressed, d damped, h history, * valid, > best, i - internal\nOrigin codes: i - IGP, e - EGP, ? - incomplete\n\n   Network          Next Hop     Metric LocPrf Weight Path\n*> 192.168.1.0      10.10.10.1        0         32768 i\n*> 192.168.100.0    0.0.0.0           0         32768 i\n*> 192.168.200.0    172.16.1.2        0             0 200 i',
+      outputFidelity: 'enonce',
+      explain: '192.168.200.0 vient de l’AS 200 (Path « 200 i »). Les deux autres sont d’origine locale (Weight 32768).',
+      hint: 'show ip bgp',
+    },
+  ],
+  quiz: [
+    { id: 'q0', kind: 'single', source: 'enonce', tags: ['connectivite'], prompt: 'Avant toute route, CR peut-il atteindre ISP2 ?', options: ['Oui', 'Non'], answer: 1, explain: 'Sans route ni protocole de routage, CR ne connaît que ses réseaux directement connectés.' },
+    { id: 'q1', kind: 'single', source: 'enonce', tags: ['table-routage'], prompt: 'Le réseau 192.168.1.0 est-il dans la table de routage d’ISP2 ?', options: ['Oui', 'Non'], answer: 0, explain: 'Il apparaît en B, via 172.16.1.1.' },
+    { id: 'q2', kind: 'input', source: 'enonce', tags: ['table-routage'], prompt: 'Quelle lettre se trouve à gauche de l’entrée 192.168.1.0 dans la table d’ISP2 ?', accept: ['B'], explain: 'B = route apprise par BGP.' },
+    { id: 'q3', kind: 'single', source: 'enonce', tags: ['table-routage'], prompt: 'Que signifie cette lettre ?', options: ['Route statique', 'Route apprise par BGP', 'Route par défaut', 'Réseau connecté'], answer: 1, explain: 'Voir les codes : B - BGP.' },
+    { id: 'q4', kind: 'single', source: 'enonce', tags: ['bgp-annonce'], prompt: 'Quel routeur a annoncé le réseau 192.168.1.0 à ISP2 ?', options: ['CR', 'ISP1 (172.16.1.1)', 'ISP2 lui-même', 'Le PC hôte'], answer: 1, explain: 'ISP1 l’annonce via la commande network 192.168.1.0.' },
+    { id: 'q5', kind: 'input', source: 'enonce', tags: ['bgp-annonce'], prompt: 'Quel réseau ISP2 signale-t-il à ISP1 ?', accept: ['192.168.200.0', '192.168.200.0/24'], explain: 'ISP2 annonce uniquement 192.168.200.0/24.' },
+    { id: 'q6', kind: 'single', source: 'enonce', tags: ['route-statique'], prompt: 'Comment le réseau 192.168.1.0 est-il connu d’ISP1 ?', options: ['Par BGP depuis CR', 'Par une route statique (S) vers 10.10.10.1', 'Par OSPF', 'Il est directement connecté'], answer: 1, explain: 'Route statique configurée à l’étape 2 ; elle permet ensuite à BGP de l’annoncer.' },
+    { id: 'q7', kind: 'single', source: 'enonce', tags: ['route-defaut'], prompt: 'Pourquoi 192.168.100.0 et 192.168.200.0 n’apparaissent-ils pas dans la table de CR ?', options: ['BGP est en panne', 'Aucun protocole de routage ne tourne entre CR et ISP1 : CR utilise sa route par défaut', 'Les loopbacks ne sont pas routables', 'CR est dans l’AS 200'], answer: 1, explain: 'ISP1 n’annonce aucun réseau au client ; la route par défaut suffit pour sortir.' },
+    { id: 'q8', kind: 'single', source: 'derive', tags: ['bgp-table'], prompt: 'Dans show ip bgp, que signifie « *> » ?', options: ['Route supprimée', 'Route valide et meilleure', 'Route interne', 'Route amortie'], answer: 1, explain: '* valid, > best.' },
+    { id: 'q9', kind: 'input', source: 'derive', tags: ['distance-administrative'], prompt: 'Quelle est la distance administrative des routes eBGP (valeur entre crochets) ?', accept: ['20'], explain: '[20/0] : 20 est la distance administrative de l’eBGP.' },
+  ],
+  compare: [
+    {
+      id: 'cmp-static-return',
+      title: 'Route de retour absente sur ISP1',
+      context: 'ISP1 doit annoncer 192.168.1.0 en BGP.',
+      wrong: { config: 'router bgp 100\n network 192.168.1.0\n! pas de ip route 192.168.1.0 …', result: 'Le réseau n’est pas dans la table d’ISP1 : BGP ne l’annonce pas et les réponses ne reviennent pas au client.' },
+      right: { config: 'ip route 192.168.1.0 255.255.255.0 10.10.10.1\nrouter bgp 100\n network 192.168.1.0', result: 'Route S dans la table d’ISP1, annoncée en BGP : ISP2 la voit en B.' },
+      lesson: 'La commande network de BGP annonce un réseau présent dans la table de routage.',
+      challenge: {
+        symptom: 'ISP2 voit 192.168.100.0 en BGP mais pas 192.168.1.0.',
+        options: ['Ajouter la route statique 192.168.1.0/24 vers 10.10.10.1 sur ISP1', 'Configurer BGP sur CR', 'Changer l’AS d’ISP2', 'Supprimer la loopback'],
+        answer: 0,
+      },
+    },
+    {
+      id: 'cmp-remote-as',
+      title: 'Mauvais remote-as',
+      context: 'Déclaration du voisin eBGP sur ISP1.',
+      wrong: { config: 'router bgp 100\n neighbor 172.16.1.2 remote-as 100', result: 'ISP1 attend un voisin de l’AS 100 alors qu’ISP2 est dans l’AS 200 : la session ne s’établit pas.' },
+      right: { config: 'router bgp 100\n neighbor 172.16.1.2 remote-as 200', result: 'Session eBGP établie, routes échangées.' },
+      lesson: 'remote-as désigne l’AS du voisin, pas son propre AS.',
+      challenge: {
+        symptom: 'Aucune route B n’apparaît, et la session BGP vers 172.16.1.2 ne s’établit pas.',
+        options: ['Corriger remote-as en 200 sur ISP1', 'Ajouter une route par défaut sur ISP2', 'Ajouter network 172.16.1.0', 'Activer OSPF'],
+        answer: 0,
+      },
+    },
+  ],
+  sims: [],
+  ap: {
+    file: 'sims/bgp/index.html',
+    scenes: ['Introduction et objectifs', 'Topologie AS 100 / AS 200', 'Loopbacks ISP1 et ISP2', 'Route par défaut CR + route statique ISP1', 'router bgp 100 / 200', 'show ip route ISP2 : 5 questions', 'show ip route ISP1 et CR : questions', 'show ip bgp : survol des colonnes', 'Question finale et score'],
+  },
+  sources: [{ label: 'Énoncé – Configuration d’un routeur avec BGP (Cisco Networking Academy)', file: 'docs/tp-bgp.pdf' }],
+  notes: [
+    "Classement dans la matière « Routage & Commutation » : choix par défaut (le document ne porte pas d’en-tête de module), à confirmer.",
+    "Coquille de l’énoncé : « ISP1 se connecte à l’Internet par l’intermédiaire de SP2 » → ISP2.",
+    "Les horodatages « 00$$$40$$$38 » de l’énoncé ont été rétablis en 00:40:38.",
+    "Le document est © Cisco Systems : vérifiez les droits avant une publication publique du PDF.",
+  ],
+  glossary: ['bgp', 'as', 'ebgp', 'route-par-defaut', 'route-statique', 'loopback', 'distance-administrative'],
+};
+
+export default tp;

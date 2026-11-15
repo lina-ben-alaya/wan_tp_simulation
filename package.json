@@ -1,0 +1,38 @@
+{
+  "name": "it-lab",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "IT LAB – Interactive Learning Platform : TP réseaux interactifs (MPLS, BGP, NAT, VPN, Frame Relay)",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "overrides": {
+    "esbuild": "0.25.12"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.4.2",
+    "@tailwindcss/vite": "^4.1.18",
+    "astro": "^5.18.2",
+    "pdf-lib": "^1.17.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^4.1.18",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^22.19.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

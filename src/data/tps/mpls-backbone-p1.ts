@@ -1,0 +1,267 @@
+import type { Tp } from '../types';
+import { mplsTopology } from './_mpls-topology';
+
+const tp: Tp = {
+  slug: 'mpls-backbone-p1',
+  order: 1,
+  code: 'TP1 · P1',
+  title: "Backbone MPLS – Partie I",
+  subtitle: 'OSPF dans le cœur opérateur, EIGRP chez le client',
+  subject: 'tech-wan',
+  theme: 'mpls',
+  level: 2,
+  duration: 60,
+  tools: ['GNS3', 'Cisco 7200'],
+  equipment: ['SP1', 'SP2', 'SP3', 'SIEGE', 'AGENCE', 'SW1', 'SW2'],
+  fidelity: 'reconstitue',
+  summary:
+    "Construire le cœur d'un réseau d'opérateur : adressage, loopbacks, OSPF à zone unique dans le backbone et EIGRP AS 100 chez le client, avant l'activation de MPLS.",
+  scenario:
+    "Vous êtes ingénieur réseau chez un ISP. Des clients demandent un service MPLS : vous commencez par le cœur du réseau (le backbone). Le client possède deux sites, LAN SIEGE et LAN AGENCE, à raccorder via le backbone. Son réseau forme l'AS 100 et utilise EIGRP ; le backbone utilise OSPF (zone unique).",
+  objectives: [
+    'Configurer les interfaces et les loopbacks selon le plan d’adressage',
+    'Utiliser la loopback comme router-ID OSPF',
+    'Déployer OSPF (Area 0) sur SP1, SP2 et SP3 et vérifier la connectivité',
+    'Comprendre pourquoi annoncer la loopback avec son vrai masque (point-to-point)',
+    'Configurer EIGRP AS 100 sur les routeurs CE et expliquer l’absence de voisins',
+  ],
+  prerequisites: [],
+  topology: mplsTopology,
+  learn: [
+    {
+      title: 'Le scénario : un opérateur et son client',
+      body: [
+        "Le réseau étudié a deux propriétaires. L'opérateur (ISP) possède le backbone SP1–SP2–SP3. Le client possède les routeurs SIEGE et AGENCE et ses deux LAN.",
+        "Les routeurs du client placés en bordure du backbone sont appelés CE (Customer Edge). Les routeurs de l'opérateur qui leur font face (SP1, SP3) jouent le rôle de PE (Provider Edge) ; SP2, au centre, est un routeur P (Provider).",
+      ],
+      points: ['CE : SIEGE, AGENCE (EIGRP AS 100)', 'PE : SP1, SP3', 'P : SP2', 'Backbone : OSPF, zone unique (Area 0)'],
+    },
+    {
+      title: 'Loopback et router-ID',
+      body: [
+        "Une interface de bouclage (loopback) est une interface virtuelle toujours active tant que le routeur fonctionne. Son adresse sert ici de router-ID OSPF : l'identifiant reste stable même si une interface physique tombe.",
+        'Plan : SP1 1.1.1.1/25, SP2 2.2.2.2/25, SP3 3.3.3.3/25.',
+      ],
+      code: 'interface Loopback0\n ip address 1.1.1.1 255.255.255.128',
+    },
+    {
+      title: 'Pourquoi « ip ospf network point-to-point » sur la loopback ?',
+      body: [
+        "Par défaut, OSPF annonce une loopback comme une route d'hôte /32, quel que soit le masque configuré. Avec cette commande, OSPF annonce le vrai masque (/25).",
+        "En MPLS, les labels sont associés aux préfixes de la table de routage. Si un routeur connaît 1.1.1.0/25 en connecté tandis que les autres apprennent 1.1.1.1/32 par OSPF, les préfixes ne correspondent plus : c'est la source des problèmes signalés dans l'énoncé.",
+      ],
+      code: 'interface Loopback0\n ip ospf network point-to-point',
+      callout: { tone: 'warn', text: 'Sans cette commande, show ip route affiche les loopbacks distantes en /32.' },
+    },
+    {
+      title: 'EIGRP côté client : pourquoi pas de voisins ?',
+      body: [
+        'SIEGE et AGENCE exécutent EIGRP AS 100. Mais ils ne sont pas directement connectés : entre eux se trouve le backbone, qui ne parle pas EIGRP AS 100.',
+        "Les voisins EIGRP ne seront donc pas détectés tant que MPLS (et le VPN) ne seront pas en place sur SP1 et SP3. C'est le résultat attendu à la fin de cette partie.",
+      ],
+      callout: { tone: 'info', text: 'La configuration MPLS est vue dans la partie II du TP.' },
+    },
+  ],
+  steps: [
+    {
+      id: 'sp1-if',
+      device: 'SP1',
+      title: 'Adresser l’interface vers SIEGE',
+      goal: 'Configurer s1/1 de SP1 dans 192.168.12.0/24 et l’activer.',
+      commands: [
+        { prompt: 'SP1#', cmd: 'configure terminal' },
+        { prompt: 'SP1(config)#', cmd: 'interface serial1/1' },
+        { prompt: 'SP1(config-if)#', cmd: 'ip address 192.168.12.1 255.255.255.0' },
+        { prompt: 'SP1(config-if)#', cmd: 'no shutdown' },
+      ],
+      output: '%LINK-3-UPDOWN: Interface Serial1/1, changed state to up\n%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial1/1, changed state to up',
+      outputFidelity: 'reconstitue',
+      explain: "Chaque lien série a son propre réseau /24. Les interfaces Cisco sont désactivées par défaut : « no shutdown » est indispensable. L'adresse hôte .1 côté SP1 est cohérente avec le TP2 (SIEGE = 192.168.12.2).",
+      hint: 'Entrez en mode configuration, sélectionnez serial1/1, puis ip address … et no shutdown.',
+    },
+    {
+      id: 'sp1-lo',
+      device: 'SP1',
+      title: 'Créer la loopback de SP1',
+      goal: 'Loopback0 = 1.1.1.1/25 (futur router-ID OSPF).',
+      commands: [
+        { prompt: 'SP1(config)#', cmd: 'interface loopback0' },
+        { prompt: 'SP1(config-if)#', cmd: 'ip address 1.1.1.1 255.255.255.128' },
+      ],
+      explain: 'Un /25 correspond au masque 255.255.255.128. La loopback est toujours « up ».',
+      hint: '/25 → 255.255.255.128',
+    },
+    {
+      id: 'ping-pp',
+      device: 'SIEGE',
+      title: 'Vérifier le lien point à point SIEGE–SP1',
+      goal: 'Tester la connectivité directe avant tout routage.',
+      commands: [{ prompt: 'SIEGE#', cmd: 'ping 192.168.12.1' }],
+      output: 'Type escape sequence to abort.\nSending 5, 100-byte ICMP Echos to 192.168.12.1, timeout is 2 seconds:\n!!!!!\nSuccess rate is 100 percent (5/5)',
+      outputFidelity: 'reconstitue',
+      explain: 'Un réseau directement connecté est joignable sans protocole de routage. Faites de même entre AGENCE et SP3.',
+      hint: 'ping suivi de l’adresse de SP1 sur le lien.',
+    },
+    {
+      id: 'sp1-ospf',
+      device: 'SP1',
+      title: 'Activer OSPF sur SP1',
+      goal: 'Annoncer la loopback et le lien vers SP2 dans l’Area 0.',
+      commands: [
+        { prompt: 'SP1(config)#', cmd: 'router ospf 1' },
+        { prompt: 'SP1(config-router)#', cmd: 'network 1.1.1.0 0.0.0.127 area 0' },
+        { prompt: 'SP1(config-router)#', cmd: 'network 192.168.23.0 0.0.0.255 area 0' },
+      ],
+      explain: "OSPF utilise des masques génériques (wildcard) : 0.0.0.127 pour un /25. Le lien vers SIEGE n'est pas annoncé : il appartient au client. L'adresse de la loopback devient le router-ID.",
+      hint: 'router ospf <id> puis network <réseau> <wildcard> area 0.',
+    },
+    {
+      id: 'sp2-ospf',
+      device: 'SP2',
+      title: 'Activer OSPF sur SP2',
+      goal: 'SP2 annonce sa loopback et ses deux liens de backbone.',
+      commands: [
+        { prompt: 'SP2(config)#', cmd: 'router ospf 1' },
+        { prompt: 'SP2(config-router)#', cmd: 'network 2.2.2.0 0.0.0.127 area 0' },
+        { prompt: 'SP2(config-router)#', cmd: 'network 192.168.23.0 0.0.0.255 area 0' },
+        { prompt: 'SP2(config-router)#', cmd: 'network 192.168.34.0 0.0.0.255 area 0' },
+      ],
+      output: '%OSPF-5-ADJCHG: Process 1, Nbr 1.1.1.1 on Serial1/2 from LOADING to FULL, Loading Done',
+      outputFidelity: 'reconstitue',
+      explain: "L'adjacence OSPF avec SP1 passe à l'état FULL : les bases de données sont synchronisées. Configurez ensuite SP3 (3.3.3.0/25 et 192.168.34.0/24).",
+      hint: 'Trois commandes network : loopback, lien vers SP1, lien vers SP3.',
+    },
+    {
+      id: 'lo-p2p',
+      device: 'SP1',
+      title: 'Annoncer le vrai masque de la loopback',
+      goal: 'Forcer OSPF à annoncer 1.1.1.0/25 au lieu de 1.1.1.1/32.',
+      commands: [
+        { prompt: 'SP1(config)#', cmd: 'interface loopback0' },
+        { prompt: 'SP1(config-if)#', cmd: 'ip ospf network point-to-point' },
+      ],
+      explain: "À répéter sur chaque loopback (SP1, SP2, SP3). Sinon OSPF annonce une route /32, ce qui pose problème dans un environnement MPLS.",
+      hint: 'La commande se tape en mode interface, sur la loopback.',
+    },
+    {
+      id: 'verif-ospf',
+      device: 'SP3',
+      title: 'Vérifier la table de routage',
+      goal: 'Les loopbacks distantes apparaissent en /25 avec le code O.',
+      commands: [{ prompt: 'SP3#', cmd: 'show ip route' }],
+      output:
+        'Codes: C - connected, O - OSPF, D - EIGRP ...\n\n     1.0.0.0/25 is subnetted, 1 subnets\nO       1.1.1.0 [110/129] via 192.168.34.2, Serial1/3\n     2.0.0.0/25 is subnetted, 1 subnets\nO       2.2.2.0 [110/65] via 192.168.34.2, Serial1/3\n     3.0.0.0/25 is subnetted, 1 subnets\nC       3.3.3.0 is directly connected, Loopback0\nO    192.168.23.0/24 [110/128] via 192.168.34.2, Serial1/3\nC    192.168.34.0/24 is directly connected, Serial1/3\nC    192.168.45.0/24 is directly connected, Serial1/1',
+      outputFidelity: 'reconstitue',
+      explain: "Le code O indique une route OSPF ; [110/x] = distance administrative 110 / coût. Les loopbacks sont bien en /25. Les métriques exactes dépendent de la bande passante des liens.",
+      hint: 'show ip route',
+    },
+    {
+      id: 'eigrp-ce',
+      device: 'SIEGE',
+      title: 'Configurer EIGRP AS 100 sur SIEGE',
+      goal: 'Annoncer le LAN SIEGE et le lien vers SP1.',
+      commands: [
+        { prompt: 'SIEGE(config)#', cmd: 'router eigrp 100' },
+        { prompt: 'SIEGE(config-router)#', cmd: 'network 10.10.10.0' },
+        { prompt: 'SIEGE(config-router)#', cmd: 'network 192.168.12.0' },
+        { prompt: 'SIEGE(config-router)#', cmd: 'no auto-summary' },
+      ],
+      explain: "Même chose sur AGENCE (192.168.1.0 et 192.168.45.0). Aucun voisin n'apparaît : SP1 et SP3 ne participent pas encore à l'AS 100. C'est le résultat attendu.",
+      hint: 'router eigrp 100, puis network pour chaque réseau du client.',
+    },
+  ],
+  quiz: [
+    {
+      id: 'q1', kind: 'single', source: 'derive', tags: ['roles-mpls'],
+      prompt: 'Quel est le rôle de SIEGE et AGENCE dans cette architecture ?',
+      options: ['P (Provider)', 'PE (Provider Edge)', 'CE (Customer Edge)', 'ASBR'],
+      answer: 2,
+      explain: "L'énoncé l'indique : AGENCE et SIEGE sont des routeurs CE, ils appartiennent au client.",
+    },
+    {
+      id: 'q2', kind: 'input', source: 'derive', tags: ['adressage'],
+      prompt: 'Quel masque décimal correspond au /25 des loopbacks ?',
+      accept: ['255.255.255.128'],
+      placeholder: '255.255.255.x',
+      explain: '/25 = 25 bits à 1 → 255.255.255.128 ; la wildcard OSPF correspondante est 0.0.0.127.',
+    },
+    {
+      id: 'q3', kind: 'single', source: 'enonce', tags: ['ospf-loopback'],
+      prompt: 'Sans « ip ospf network point-to-point », avec quelle longueur de préfixe OSPF annonce-t-il la loopback ?',
+      options: ['/24', '/25', '/32', '/30'],
+      answer: 2,
+      explain: "Le type de réseau par défaut d'une loopback fait annoncer une route d'hôte /32, ce qui cause des problèmes dans les environnements MPLS.",
+    },
+    {
+      id: 'q4', kind: 'single', source: 'derive', tags: ['ospf-loopback'],
+      prompt: 'Pourquoi utiliser l’adresse de la loopback comme router-ID ?',
+      options: [
+        'Elle est plus rapide que les interfaces physiques',
+        'Elle reste active tant que le routeur fonctionne : l’identifiant est stable',
+        'OSPF ne fonctionne pas sans loopback',
+        'Elle évite de configurer des réseaux network',
+      ],
+      answer: 1,
+      explain: "Une loopback ne tombe pas avec un lien physique : le router-ID ne change pas lors des changements de topologie.",
+    },
+    {
+      id: 'q5', kind: 'single', source: 'enonce', tags: ['eigrp-client'],
+      prompt: 'Après l’étape 3, les voisins EIGRP SIEGE ↔ AGENCE sont-ils établis ?',
+      options: ['Oui, immédiatement', 'Non, pas tant que MPLS n’est pas en place sur SP1 et SP3', 'Oui, via OSPF', 'Seulement après un reload'],
+      answer: 1,
+      explain: 'Les deux CE ne sont pas adjacents : le backbone ne transporte pas encore leur AS. MPLS sera ajouté dans la partie II puis le VPN au TP2.',
+    },
+    {
+      id: 'q6', kind: 'input', source: 'derive', tags: ['ospf-wildcard'],
+      prompt: 'Complétez : network 192.168.23.0 ____ area 0',
+      accept: ['0.0.0.255'],
+      explain: 'Le lien est un /24 : la wildcard est 0.0.0.255.',
+    },
+    {
+      id: 'q7', kind: 'order', source: 'derive', tags: ['methodologie'],
+      prompt: 'Remettez les étapes du TP dans l’ordre.',
+      items: ['Adressage des interfaces et loopbacks', 'Tests point à point', 'OSPF dans le backbone', 'ip ospf network point-to-point sur les loopbacks', 'EIGRP sur les CE'],
+      explain: "On valide chaque couche avant la suivante : adressage, connectivité directe, IGP opérateur, puis réseau client.",
+    },
+    {
+      id: 'q8', kind: 'single', source: 'derive', tags: ['ospf-loopback'],
+      prompt: 'Dans « O 1.1.1.0 [110/129] », que représente 110 ?',
+      options: ['Le coût OSPF', 'La distance administrative d’OSPF', 'Le numéro de processus', 'Le délai en ms'],
+      answer: 1,
+      explain: 'Entre crochets : [distance administrative / métrique]. 110 est la distance administrative par défaut d’OSPF.',
+    },
+  ],
+  compare: [
+    {
+      id: 'cmp-lo32',
+      title: 'Loopback annoncée en /32 ou en /25',
+      context: 'SP1 annonce sa Loopback0 (1.1.1.1/25) dans OSPF.',
+      wrong: {
+        config: 'interface Loopback0\n ip address 1.1.1.1 255.255.255.128\n! (type de réseau OSPF par défaut)',
+        result: 'Les autres routeurs apprennent 1.1.1.1/32. Le préfixe ne correspond plus au réseau connecté 1.1.1.0/25 de SP1 : problèmes en environnement MPLS.',
+      },
+      right: {
+        config: 'interface Loopback0\n ip address 1.1.1.1 255.255.255.128\n ip ospf network point-to-point',
+        result: 'OSPF annonce 1.1.1.0/25 : les tables de routage (et plus tard les labels) portent sur le même préfixe.',
+      },
+      lesson: 'Sur une loopback, OSPF annonce /32 par défaut ; « ip ospf network point-to-point » fait annoncer le vrai masque.',
+      challenge: {
+        symptom: 'Sur SP3, show ip route affiche « O 1.1.1.1/32 » alors que la loopback de SP1 est en /25.',
+        options: ['Changer le router-ID de SP1', 'Ajouter « ip ospf network point-to-point » sur Loopback0 de SP1', 'Passer la loopback en /32', 'Redémarrer OSPF sur SP3'],
+        answer: 1,
+      },
+    },
+  ],
+  sims: [],
+  ap: {
+    file: 'sims/mpls-backbone-p1/index.html',
+    scenes: ['Introduction et objectifs', 'Topologie annotée (rôles CE/PE/P)', 'Adressage SP1 – console', 'Ping point à point', 'OSPF sur SP1/SP2/SP3', 'Loopback /32 → /25 (avant/après)', 'EIGRP AS 100 sur les CE', 'Question : pourquoi aucun voisin EIGRP ?', 'Score et bilan'],
+  },
+  sources: [{ label: 'Énoncé TP1 – Partie I', file: 'docs/tp1-mpls-partie1.pdf' }],
+  notes: [
+    "L'énoncé ne précise pas les adresses hôtes des liens de backbone : la plateforme utilise .1/.2 (SP1–SP2) et .2/.3 (SP2–SP3). Les adresses PE–CE (.1 côté SP, .2 côté CE) sont cohérentes avec le TP2.",
+  ],
+  glossary: ['isp', 'ce', 'pe', 'p', 'loopback', 'router-id', 'ospf', 'eigrp', 'wildcard', 'distance-administrative'],
+};
+
+export default tp;

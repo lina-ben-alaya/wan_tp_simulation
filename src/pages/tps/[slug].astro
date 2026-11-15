@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/ui/Icon.astro';
+import TpWorkspace from '../../components/tp/TpWorkspace.tsx';
+import APPlayer from '../../components/ap/APPlayer.tsx';
+import { TPS, getTp } from '../../data/index';
+import { SUBJECTS, THEMES, LEVELS, FIDELITY, ACTIVITY_KINDS } from '../../data/catalog';
+import { url } from '../../lib/url';
+
+export function getStaticPaths() {
+  return TPS.map((t) => ({ params: { slug: t.slug } }));
+}
+const tp = getTp(Astro.params.slug!)!;
+const idx = TPS.findIndex((t) => t.slug === tp.slug);
+const prev = TPS[idx - 1];
+const next = TPS[idx + 1];
+---
+<BaseLayout title={tp.title} description={tp.summary}>
+  <div class={`theme-${tp.theme}`}>
+    <section class="container page-head" style="padding-bottom:16px">
+      <nav aria-label="Fil d’Ariane" class="dim" style="font-size:0.86rem;margin-bottom:14px">
+        <a href={url('tps')}>Bibliothèque</a> / <a href={url(`modules#${tp.theme}`)}>{THEMES[tp.theme].label}</a> / <span>{tp.code}</span>
+      </nav>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        <span class="badge badge-theme">{THEMES[tp.theme].label}</span>
+        <span class="badge">{SUBJECTS[tp.subject].label}</span>
+        <span class="badge badge-signal" title={FIDELITY[tp.fidelity].description}>Sorties : {FIDELITY[tp.fidelity].label}</span>
+      </div>
+      <div class="mono dim" style="font-size:0.84rem">{tp.code}</div>
+      <h1 style="margin-bottom:6px">{tp.title}</h1>
+      <p class="lead" style="margin-bottom:16px">{tp.subtitle}</p>
+      <div style="display:flex;gap:8px 22px;flex-wrap:wrap;color:var(--text-2);font-size:0.92rem">
+        <span style="display:inline-flex;gap:6px;align-items:center"><Icon name="clock" size={16} /> {tp.duration} min</span>
+        <span style="display:inline-flex;gap:6px;align-items:center"><Icon name="chart" size={16} /> {LEVELS[tp.level]}</span>
+        <span style="display:inline-flex;gap:6px;align-items:center"><Icon name="router" size={16} /> {tp.tools.join(' · ')}</span>
+      </div>
+    </section>
+
+    <section class="container">
+      <div class="split split-2" style="margin-bottom:24px">
+        <div class="card card-pad">
+          <div class="eyebrow"><Icon name="info" size={14} /> Scénario</div>
+          <p class="muted">{tp.scenario}</p>
+          <div class="eyebrow" style="margin-top:14px"><Icon name="router" size={14} /> Matériel et environnement</div>
+          <p class="muted" style="margin:0">{tp.equipment.join(' · ')}</p>
+        </div>
+        <div class="card card-pad">
+          <div class="eyebrow"><Icon name="target" size={14} /> Objectifs</div>
+          <ul style="margin:0;padding-left:0;list-style:none;display:grid;gap:6px">
+            {tp.objectives.map((o) => <li style="display:flex;gap:8px"><span style="color:var(--accent);flex:none"><Icon name="check" size={18} /></span>{o}</li>)}
+          </ul>
+          {tp.prerequisites.length > 0 && (
+            <p class="dim" style="margin:12px 0 0;font-size:0.88rem">Prérequis : {tp.prerequisites.map((p, i) => <>{i > 0 && ' · '}<a href={url(`tps/${p}`)}>{TPS.find((t) => t.slug === p)?.title}</a></>)}</p>
+          )}
+          <p class="dim" style="margin:8px 0 0;font-size:0.88rem">Source : {tp.sources.map((s) => <a href={url(s.file)} target="_blank" rel="noopener">{s.label} (PDF)</a>)}</p>
+        </div>
+      </div>
+
+      <TpWorkspace client:load tp={tp} base={url()} />
+
+      <section class="card card-pad" style="margin-top:28px" id="activepresenter">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+          <span class="badge badge-kind" title={ACTIVITY_KINDS.guide.description}>{ACTIVITY_KINDS.guide.label}</span>
+          <h2 style="margin:0;font-size:1.3rem">Simulation ActivePresenter</h2>
+        </div>
+        <p class="muted">Simulation HTML5 conçue sous ActivePresenter selon le storyboard du TP : saisie guidée, Wireshark reconstitué, questions et score.</p>
+        <APPlayer client:visible slug={tp.slug} title={`${tp.code} – ${tp.title}`} src={url(tp.ap.file)} scenes={tp.ap.scenes} />
+      </section>
+
+      <nav style="display:flex;justify-content:space-between;gap:12px;margin-top:24px;flex-wrap:wrap" aria-label="TP précédent et suivant">
+        {prev ? <a class="btn btn-ghost" href={url(`tps/${prev.slug}`)}><Icon name="prev" /> {prev.title}</a> : <span />}
+        {next && <a class="btn btn-ghost" href={url(`tps/${next.slug}`)}>{next.title} <Icon name="next" /></a>}
+      </nav>
+    </section>
+  </div>
+</BaseLayout>
