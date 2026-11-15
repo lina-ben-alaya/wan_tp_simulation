@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/ui/Icon.astro';
+import Topology from '../components/tp/Topology.tsx';
+import ResumeCard from '../components/library/ResumeCard.tsx';
+import { TPS, OPERATOR_PATH, tpsByTheme } from '../data/index';
+import { THEMES, MODES, SIMS, AUTHOR } from '../data/catalog';
+import { GLOSSARY } from '../data/glossary';
+import { mplsTopology } from '../data/tps/_mpls-topology';
+import { url } from '../lib/url';
+import type { ThemeId } from '../data/types';
+
+const commands = TPS.reduce((n, t) => n + t.steps.reduce((m, s) => m + s.commands.length, 0), 0);
+const questions = TPS.reduce((n, t) => n + t.quiz.length, 0);
+const compares = TPS.reduce((n, t) => n + t.compare.length, 0);
+const modeIcons = { learn: 'book', observe: 'eye', practice: 'terminal', evaluate: 'target', correct: 'checkCircle' } as const;
+const themeIcons: Record<ThemeId, 'layers' | 'route' | 'package' | 'shield' | 'network'> = { mpls: 'layers', routage: 'route', services: 'package', vpn: 'shield', 'frame-relay': 'network' };
+const bySlug = new Map(TPS.map((t) => [t.slug, t]));
+---
+<BaseLayout title="IT LAB">
+  <section class="container section" style="padding-top:48px">
+    <div class="split split-2" style="align-items:center;gap:40px">
+      <div>
+        <div class="eyebrow"><Icon name="flask" size={14} /> Laboratoire virtuel · RSI3 · par {AUTHOR}</div>
+        <h1>Le réseau d’un opérateur,<br /><span style="color:var(--primary)">TP par TP.</span></h1>
+        <p class="lead">
+          IT LAB transforme dix travaux pratiques réseaux en parcours interactifs : comprendre la théorie,
+          regarder la démonstration, taper soi-même les commandes, s’évaluer, puis analyser ses erreurs.
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin:24px 0">
+          <a class="btn btn-primary" href={url('tps')}>Explorer les TP <Icon name="arrowRight" /></a>
+          <a class="btn btn-ghost" href={url('defi')}><Icon name="bolt" /> Mode défi</a>
+        </div>
+        <div style="display:flex;gap:28px;flex-wrap:wrap">
+          <div class="stat"><b>{TPS.length}</b><span>TP</span></div>
+          <div class="stat"><b>{commands}</b><span>commandes à pratiquer</span></div>
+          <div class="stat"><b>{questions}</b><span>questions corrigées</span></div>
+          <div class="stat"><b>{Object.keys(SIMS).length}</b><span>simulateurs</span></div>
+        </div>
+      </div>
+      <div class="card card-pad" style="position:relative">
+        <div class="eyebrow" style="justify-content:space-between"><span>Fil rouge · VPN MPLS du Client A</span><span class="badge badge-signal">paquet en transit</span></div>
+        <Topology client:visible topology={mplsTopology} packetPath={['SW1', 'SIEGE', 'SP1', 'SP2', 'SP3', 'AGENCE', 'SW2']} title="Topologie du backbone MPLS avec un paquet en transit" />
+      </div>
+    </div>
+    <div style="margin-top:28px">
+      <ResumeCard client:load tps={TPS.map((t) => ({ slug: t.slug, title: t.title, code: t.code }))} base={url()} />
+    </div>
+  </section>
+
+  <section class="container section-sm">
+    <div class="eyebrow">Cinq modes pour chaque TP</div>
+    <h2>Apprendre, observer, pratiquer, évaluer, corriger</h2>
+    <div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-top:16px">
+      {MODES.map((m, i) => (
+        <div class="card card-pad">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span class="mono dim">0{i + 1}</span><span style="color:var(--primary)"><Icon name={modeIcons[m.id]} /></span>
+          </div>
+          <h3 style="margin-bottom:4px">{m.label}</h3>
+          <p class="muted" style="margin:0;font-size:0.92rem">{m.description}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="container section-sm">
+    <div class="eyebrow">Modules</div>
+    <h2>Cinq thèmes, deux matières</h2>
+    <div class="grid-auto" style="margin-top:16px">
+      {(Object.keys(THEMES) as ThemeId[]).map((th) => (
+        <a class={`card card-link theme-${th}`} href={url(`modules#${th}`)}>
+          <div class="tp-card">
+            <span style="color:var(--accent)"><Icon name={themeIcons[th]} size={26} /></span>
+            <h3>{THEMES[th].label}</h3>
+            <p class="muted" style="margin:0">{THEMES[th].description}</p>
+            <div class="meta"><span>{tpsByTheme(th).length} TP</span></div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="container section-sm">
+    <div class="eyebrow">Parcours « Opérateur »</div>
+    <h2>Une histoire, du backbone à l’agence</h2>
+    <p class="lead">Les TP sont reliés par un scénario : vous êtes ingénieur chez un opérateur, et chaque TP résout le problème suivant.</p>
+    <ol style="list-style:none;padding:0;margin:20px 0 0;display:grid;gap:12px">
+      {OPERATOR_PATH.map((c) => (
+        <li class="card card-pad" style="display:grid;gap:10px;grid-template-columns:minmax(0,1fr)">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:baseline">
+            <strong>{c.chapter}</strong><span class="muted">{c.story}</span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            {c.slugs.map((s) => { const t = bySlug.get(s)!; return <a class={`btn btn-ghost btn-sm theme-${t.theme}`} href={url(`tps/${s}`)}><span class="badge badge-theme">{t.code}</span> {t.title}</a>; })}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="container section-sm">
+    <div class="card card-pad" style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+      <div><div class="eyebrow"><Icon name="compare" size={14} /> {compares} comparaisons</div><p class="muted" style="margin:0">Pour chaque TP, la configuration incorrecte et sa conséquence, face à la configuration correcte.</p></div>
+      <div><div class="eyebrow"><Icon name="search" size={14} /> {GLOSSARY.length} termes</div><p class="muted" style="margin:0">Glossaire technique et recherche dans les TP, les étapes et les commandes (Ctrl K).</p></div>
+      <div id="transparence"><div class="eyebrow"><Icon name="info" size={14} /> Transparence</div><p class="muted" style="margin:0">Chaque activité indique si elle est guidée, démontrée, calculée ou réelle. Aucune simulation n’exécute de commande réseau.</p></div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,121 @@
+---
+import '../styles/global.css';
+import Icon from '../components/ui/Icon.astro';
+import SearchPalette from '../components/search/SearchPalette.tsx';
+import { url } from '../lib/url';
+import { AUTHOR } from '../data/catalog';
+
+interface Props { title: string; description?: string }
+const { title, description = 'IT LAB – plateforme pédagogique interactive : TP réseaux (MPLS, BGP, NAT, VPN, Frame Relay) en 5 modes.' } = Astro.props;
+
+const nav = [
+  { href: '', label: 'Accueil' },
+  { href: 'modules', label: 'Modules' },
+  { href: 'tps', label: 'Bibliothèque' },
+  { href: 'simulations', label: 'Simulations' },
+  { href: 'defi', label: 'Défi' },
+  { href: 'dashboard', label: 'Dashboard' },
+  { href: 'ressources', label: 'Ressources' },
+  { href: 'a-propos', label: 'À propos' },
+];
+const path = Astro.url.pathname.replace(import.meta.env.BASE_URL.replace(/\/$/, ''), '').replace(/^\/|\/$/g, '');
+const isCurrent = (href: string) => (href === '' ? path === '' : path === href || path.startsWith(href + '/'));
+---
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title === 'IT LAB' ? 'IT LAB – Interactive Learning Platform' : `${title} · IT LAB`}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={AUTHOR} />
+    <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('itlab:theme');
+          if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Aller au contenu</a>
+    <header class="site-header">
+      <div class="container">
+        <div class="bar">
+          <a class="brand" href={url()} aria-label="IT LAB – accueil">
+            <span class="brand-mark"><Icon name="logo" size={18} /></span>
+            <span>IT LAB <small>v1</small></span>
+          </a>
+          <nav class="nav" aria-label="Navigation principale">
+            {nav.map((n) => <a href={url(n.href)} aria-current={isCurrent(n.href) ? 'page' : undefined}>{n.label}</a>)}
+          </nav>
+          <div class="header-actions">
+            <button class="btn btn-ghost btn-sm search-trigger" type="button" data-open-search aria-label="Rechercher (Ctrl+K)">
+              <Icon name="search" size={16} /><span class="label">Rechercher</span><kbd>Ctrl K</kbd>
+            </button>
+            <button class="btn btn-quiet btn-icon" type="button" id="theme-toggle" aria-label="Basculer le thème clair / sombre">
+              <Icon name="moon" size={18} class="icon-moon" /><Icon name="sun" size={18} class="icon-sun" />
+            </button>
+            <button class="btn btn-quiet btn-icon menu-btn" type="button" id="menu-toggle" aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
+              <Icon name="menu" size={20} />
+            </button>
+          </div>
+        </div>
+        <nav class="mobile-nav" id="mobile-nav" aria-label="Navigation mobile">
+          {nav.map((n) => <a href={url(n.href)} aria-current={isCurrent(n.href) ? 'page' : undefined}>{n.label}</a>)}
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="footer">
+      <div class="container" style="display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between">
+        <div>
+          <strong style="color:var(--text)">IT LAB – Interactive Learning Platform</strong><br />
+          Travaux pratiques RSI3 : Atelier Technologies WAN · Routage &amp; Commutation.<br />
+          Conception et réalisation : <strong style="color:var(--text)">{AUTHOR}</strong>
+        </div>
+        <div style="max-width:520px">
+          Les simulations « GUIDÉ », « DÉMO » et « CALCULÉ » n’exécutent aucune commande réseau réelle.
+          <a href={url('a-propos#transparence')}>En savoir plus</a>.
+        </div>
+      </div>
+    </footer>
+
+    <SearchPalette client:idle indexUrl={url('search.json')} base={url()} />
+
+    <script>
+      const root = document.documentElement;
+      const btn = document.getElementById('theme-toggle');
+      const sync = () => {
+        const explicit = root.getAttribute('data-theme');
+        const dark = explicit ? explicit === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        btn?.setAttribute('aria-pressed', String(dark));
+        btn?.querySelector('.icon-moon')?.setAttribute('style', dark ? 'display:none' : '');
+        btn?.querySelector('.icon-sun')?.setAttribute('style', dark ? '' : 'display:none');
+      };
+      btn?.addEventListener('click', () => {
+        const dark = btn.getAttribute('aria-pressed') === 'true';
+        const next = dark ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('itlab:theme', next); } catch {}
+        sync();
+      });
+      sync();
+      const menu = document.getElementById('menu-toggle');
+      const mnav = document.getElementById('mobile-nav');
+      menu?.addEventListener('click', () => {
+        const open = mnav?.classList.toggle('open');
+        menu.setAttribute('aria-expanded', String(!!open));
+      });
+    </script>
+  </body>
+</html>

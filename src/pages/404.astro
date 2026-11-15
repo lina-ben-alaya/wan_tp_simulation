@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib/url';
+---
+<BaseLayout title="Page introuvable">
+  <section class="container section" style="text-align:center">
+    <div class="mono dim">% Invalid input detected at '^' marker.</div>
+    <h1>Page introuvable</h1>
+    <p class="lead" style="margin:0 auto 20px">Cette adresse ne correspond à aucune page d’IT LAB.</p>
+    <a class="btn btn-primary" href={url()}>Retour à l’accueil</a>
+  </section>
+</BaseLayout>

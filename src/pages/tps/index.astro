@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LibraryGrid from '../../components/library/LibraryGrid.tsx';
+import { TPS } from '../../data/index';
+import { toCard } from '../../lib/cards';
+import { url } from '../../lib/url';
+---
+<BaseLayout title="Bibliothèque des TP" description="Les 10 travaux pratiques réseaux d’IT LAB, filtrables par matière, thème, niveau et statut.">
+  <section class="container page-head">
+    <div class="eyebrow">Bibliothèque</div>
+    <h1>Tous les travaux pratiques</h1>
+    <p class="lead">Dix TP issus des énoncés de l’Atelier Technologies WAN et du module Routage &amp; Commutation, chacun en cinq modes.</p>
+  </section>
+  <section class="container">
+    <LibraryGrid client:load tps={TPS.map(toCard)} base={url()} />
+  </section>
+</BaseLayout>
